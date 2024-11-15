@@ -23,7 +23,7 @@ class MapEditor:
         self.toggleDrawing = True
         self.toggleGrid = self.config.get_value("ENABLE_GRID")
 
-    def handle_map_events(self, event):
+    def handle_events(self, event):
         if event.type == MOUSEMOTION and self.config.get_value("ENABLE_MOUSE_TRACK"):
             self.mouse_tracking()
         elif event.type == MOUSEBUTTONDOWN and mouse.get_pressed()[0] == True:
@@ -96,7 +96,8 @@ class MapEditor:
 
         # Draw the rotated polygon
         draw.polygon(
-            self.display_surface, self.config.get_value("COLORS")["Red"], rotated_points
+            self.display_surface, self.config.get_value(
+                "COLORS")["Red"], rotated_points
         )
 
     def drawing_grid(self):
@@ -104,7 +105,8 @@ class MapEditor:
             # Draw grid
             for line in range(
                 1,
-                int(self.config.get_value("WIDTH") / self.config.get_value("TILE_SIZE"))
+                int(self.config.get_value("WIDTH") /
+                    self.config.get_value("TILE_SIZE"))
                 + 1,
             ):
                 draw.line(
@@ -120,7 +122,8 @@ class MapEditor:
             for line in range(
                 1,
                 int(
-                    self.config.get_value("HEIGHT") / self.config.get_value("TILE_SIZE")
+                    self.config.get_value("HEIGHT") /
+                    self.config.get_value("TILE_SIZE")
                 )
                 + 1,
             ):
@@ -182,5 +185,5 @@ class MapEditor:
     def mouse_tracking(self):
         mouse_x, mouse_y = mouse.get_pos()
         print(
-            f"Mouse: ({mouse_x // self.config.get_value("TILE_SIZE")}, {mouse_y // self.config.get_value("TILE_SIZE")}), coordinate ({mouse_x}, {mouse_y})"
+            f"Mouse: ({mouse_x // self.config.get_value('TILE_SIZE')}, {mouse_y // self.config.get_value('TILE_SIZE')}), coordinate ({mouse_x}, {mouse_y})"
         )

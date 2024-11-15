@@ -3,8 +3,8 @@ import numpy as np
 
 from models.configuration import Configuration
 from models.map import MapEditor
-from models.constant import CONSTANTS
-from models.draw_text import DrawText
+from models import constant
+from models.menu import Menu
 
 
 class Main:
@@ -15,7 +15,7 @@ class Main:
     def __init__(self):
         init()
         self.config = Configuration()
-        self.game_state = CONSTANTS.GAME_STATE["PAUSE"]
+        self.game_state = constant.GAME_STATE.PAUSE
 
         # Init
         self.center = (
@@ -29,26 +29,9 @@ class Main:
         self.running = True
         self.clock = time.Clock()
         self.display_surface = display.set_mode(self.resolution)
-        self.menu_content = []
-        for index, menu_item in enumerate(CONSTANTS.MENU_CONTENT):
-            self.menu_content.append(
-                DrawText(
-                    self.display_surface,
-                    menu_item,
-                    (
-                        self.config.get_value("WIDTH") // 2 - 100,
-                        self.config.get_value("HEIGHT") // 2 + (index * 40) - 100,
-                    ),
-                    self.config.get_value("COLORS")["White"],
-                    is_bordered=True,
-                )
-            )
-
         display.set_caption(self.config.get_value("WINDOW_TITLE"))
 
         # Object
-        self.circles = []
-        self.triangles = []
         self.map = MapEditor(
             np.zeros(
                 (
@@ -61,40 +44,47 @@ class Main:
             self.display_surface,
         )
 
-    def draw_menu(self) -> None:
-        self.display_surface.fill(self.config.get_value("COLORS")["SkyBlue"])
-        for item in self.menu_content:
-            self.display_surface.blit(item.text_surface, item.position)
-
-    def draw_play(self) -> None:
-        pass
+        # Menu
+        self.menu = Menu(self.display_surface)
 
     def imports(self):
         pass
+
+    def handle_layout_event(self, event):
+        if self.game_state == constant.GAME_STATE.MAP_EDITOR:
+            self.map.handle_events(event)
+        elif self.game_state == constant.GAME_STATE.PAUSE:
+            self.handle_event_action(self.menu.handle_events(event))
+
+    def handle_event_action(self, event_action):
+        # event_action will contain 2 value (action, id of object is interacted)
+        if event_action is not None and event_action[0] is constant.ACTION.CLICKED and event_action[1] is constant.GAME_STATE.MAP_EDITOR:
+            self.game_state = constant.GAME_STATE.MAP_EDITOR
 
     def event_loop(self) -> None:
         for event in GameEvents.get():
             if event.type == QUIT:
                 self.running = False
-                break
-
-            if self.game_state == CONSTANTS.GAME_STATE["MAP_EDITOR"]:
-                self.map.handle_map_events(event)
+            else:
+                self.handle_layout_event(event)
+                # if self.game_state == constant.GAME_STATE["PLAY"]:
+                #     self.draw_play()
+                #     break
 
     def run(self):
         dt = self.clock.tick() / 1000
         print("Start Game!")
         while self.running:
-            self.event_loop()
-            if self.game_state == CONSTANTS.GAME_STATE["QUIT"]:
+            if self.game_state == constant.GAME_STATE.QUIT:
                 self.running = False
-            elif self.game_state == CONSTANTS.GAME_STATE["MAP_EDITOR"]:
+            elif self.game_state == constant.GAME_STATE.MAP_EDITOR:
                 self.map.draw_map()
-            elif self.game_state == CONSTANTS.GAME_STATE["PAUSE"]:
-                self.draw_menu()
-            elif self.game_state == CONSTANTS.GAME_STATE["PLAY"]:
+            elif self.game_state == constant.GAME_STATE.PAUSE:
+                self.menu.draw_menu()
+            elif self.game_state == constant.GAME_STATE.PLAY:
                 self.draw_play()
 
+            self.event_loop()
             display.update()
 
         quit()
